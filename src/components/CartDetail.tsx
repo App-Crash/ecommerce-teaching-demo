@@ -1,3 +1,5 @@
+// src/components/CartDetail.tsx
+
 import { useCart } from "../features/useCart";
 import type { CartLineView } from "../features/useCart";
 
