@@ -3,30 +3,41 @@ import { CartSummary } from "./components/CartSummary";
 import { Navbar } from "./components/Navbar";
 import "./index.css";
 
-import { I18nProvider } from "./features/I18nProvider";
-
-import ChokerImg from "./assets/products/Choker.jpg";
-import CisneNegroImg from "./assets/products/CisneNegro.jpg";
-import MuteImg from "./assets/products/Mute.jpg";
-import ViciousImg from "./assets/products/Vicious.jpg";
-import { useI18n } from "./features/I18nProvider";
+import { I18nProvider, useI18n } from "./features/I18nProvider";
 import { ErrorBoundary } from "./errors/ErrorBoundary";
 import { ErrorModal } from "./components/ErrorModal";
+
+import model1 from "./assets/products/model-1.jpg";
+import model2 from "./assets/products/model-2.jpg";
+import model3 from "./assets/products/model-3.jpg";
+import model4 from "./assets/products/model-4.jpg";
+
 import { Suspense, useState } from "react";
 import { createPaymentResource } from "./checkout/paymentResource";
 import { useCart } from "./features/useCart";
 
 // ----------------- Payment Components -----------------
-function Payment({ onClose, clearCart, resource }: { onClose: () => void; clearCart: () => void; resource: ReturnType<typeof createPaymentResource> }) {
-  resource.read(); // Will suspend while pending
+function Payment({
+  onClose,
+  clearCart,
+  resource,
+}: {
+  onClose: () => void;
+  clearCart: () => void;
+  resource: ReturnType<typeof createPaymentResource>;
+}) {
+  resource.read();
   const { t } = useI18n();
+
   return (
     <div className="flex flex-col items-center gap-4">
-      <p className="text-green-700 font-semibold">{t("payment_succeeded")}</p>
+      <p className="text-green-700 font-semibold">
+        {t("payment_succeeded")}
+      </p>
       <button
         className="px-4 py-2 bg-blue-700 text-white rounded"
         onClick={() => {
-          clearCart(); // Clear cart after success
+          clearCart();
           onClose();
         }}
       >
@@ -48,16 +59,23 @@ function Checkout({
   resource: ReturnType<typeof createPaymentResource>;
 }) {
   const { t } = useI18n();
+
   return (
     <Suspense
       fallback={
         <div className="flex justify-center items-center h-full">
-          <p className="text-blue-700 font-semibold">{t("processing_payment")}</p>
+          <p className="text-blue-700 font-semibold">
+            {t("processing_payment")}
+          </p>
         </div>
       }
     >
       <ErrorBoundary onError={onError}>
-        <Payment onClose={onClose} clearCart={clearCart} resource={resource} />
+        <Payment
+          onClose={onClose}
+          clearCart={clearCart}
+          resource={resource}
+        />
       </ErrorBoundary>
     </Suspense>
   );
@@ -66,35 +84,47 @@ function Checkout({
 // ----------------- Main App -----------------
 function App() {
   const { clearCart } = useCart();
+  const { t } = useI18n();
+
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [checkoutStarted, setCheckoutStarted] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [paymentResource, setPaymentResource] = useState<ReturnType<typeof createPaymentResource> | null>(null);
-  const { t } = useI18n();
+  const [paymentResource, setPaymentResource] =
+    useState<ReturnType<typeof createPaymentResource> | null>(null);
+
+  const [errorRef, setErrorRef] = useState<string | null>(null);
+
   const products = [
-    { id: 1, name: "Choker", price: 20, image: ChokerImg },
-    { id: 2, name: "Cisne Negro", price: 15, image: CisneNegroImg },
-    { id: 3, name: "Mute", price: 15, image: MuteImg },
-    { id: 4, name: "Vicious", price: 15, image: ViciousImg },
+    { id: 1, name: "Model 1", price: 30, image: model1 },
+    { id: 2, name: "Model 2", price: 33, image: model2 },
+    { id: 3, name: "Model 3", price: 41, image: model3 },
+    { id: 4, name: "Model 4", price: 32, image: model4 },
   ];
 
   // ----------------- Handlers -----------------
   const handleCheckout = () => {
-    setPaymentResource(createPaymentResource(t)); // create fresh resource per checkout
+    setPaymentResource(createPaymentResource(t));
     setCheckoutStarted(true);
   };
+
   const resetCheckout = () => {
     setCheckoutStarted(false);
     setPaymentResource(null);
   };
 
-  const handleErrorClose = () => {
-    setError(null);
+  const handleError = (e: Error) => {
+    const ref = `ERR-${Math.random()
+      .toString(36)
+      .slice(2, 7)
+      .toUpperCase()}`;
+
+    console.error("Payment UI Error", ref, e);
+
+    setErrorRef(ref);
     resetCheckout();
   };
 
-  const handleError = (e: Error) => {
-    setError(e);
+  const handleErrorClose = () => {
+    setErrorRef(null);
     resetCheckout();
   };
 
@@ -112,17 +142,22 @@ function App() {
       </main>
 
       <div
-        className={`fixed top-0 right-0 h-screen w-80 bg-white text-gray-950 dark:bg-white dark:text-gray-100 shadow-xl z-50 p-6 rounded-l-xl transform transition-transform duration-500 ease-in-out ${
+        className={`fixed top-0 right-0 h-screen w-80 bg-white text-gray-950 shadow-xl z-50 p-6 rounded-l-xl transform transition-transform duration-500 ease-in-out ${
           isCartOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {error && <ErrorModal error={error} onClose={handleErrorClose} />}
-
-        {!checkoutStarted && !error && (
-          <CartSummary onClose={() => setIsCartOpen(false)} onCheckout={handleCheckout} />
+        {errorRef && (
+          <ErrorModal errorRef={errorRef} onClose={handleErrorClose} />
         )}
 
-        {checkoutStarted && !error && paymentResource && (
+        {!checkoutStarted && !errorRef && (
+          <CartSummary
+            onClose={() => setIsCartOpen(false)}
+            onCheckout={handleCheckout}
+          />
+        )}
+
+        {checkoutStarted && !errorRef && paymentResource && (
           <Checkout
             onClose={resetCheckout}
             onError={handleError}
