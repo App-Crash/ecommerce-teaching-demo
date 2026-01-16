@@ -1,21 +1,19 @@
 // src/App.tsx
-import { ProductCard } from "./components/ProductCard";
-import { CartSummary } from "./components/CartSummary";
-import { Navbar } from "./components/Navbar";
 import "./index.css";
-
-import { I18nProvider, useI18n } from "./features/I18nProvider";
-import { ErrorModal } from "./components/ErrorModal";
+import { useState } from "react";
 
 import model1 from "./assets/products/model-1.jpg";
 import model2 from "./assets/products/model-2.jpg";
 import model3 from "./assets/products/model-3.jpg";
 import model4 from "./assets/products/model-4.jpg";
 
-import { useState } from "react";
-import { createPaymentResource } from "./checkout/paymentResource";
-import { CheckoutFlow } from "./checkout/CheckoutFlow";
 import { useCart } from "./features/useCart";
+import { useI18n } from "./features/I18nProvider";
+import { createPaymentResource } from "./checkout/paymentResource";
+
+import { AppShell } from "./app/AppShell";
+import { ProductGrid } from "./app/ProductGrid";
+import { CartDrawer } from "./app/CartDrawer";
 
 function App() {
   const { clearCart } = useCart();
@@ -62,45 +60,23 @@ function App() {
     resetCheckout();
   };
 
-  // ----------------- Render -----------------
   return (
-    <I18nProvider>
-      <Navbar onCartClick={() => setIsCartOpen(true)} />
+    <AppShell onCartClick={() => setIsCartOpen(true)}>
+      <ProductGrid products={products} />
 
-      <main className="pt-20 max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      </main>
-
-      <div
-        className={`fixed top-0 right-0 h-screen w-80 bg-white text-gray-950 shadow-xl z-50 p-6 rounded-l-xl transform transition-transform duration-500 ease-in-out ${
-          isCartOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        {errorRef && (
-          <ErrorModal errorRef={errorRef} onClose={handleErrorClose} />
-        )}
-
-        {!checkoutStarted && !errorRef && (
-          <CartSummary
-            onClose={() => setIsCartOpen(false)}
-            onCheckout={handleCheckout}
-          />
-        )}
-
-        {checkoutStarted && !errorRef && paymentResource && (
-          <CheckoutFlow
-            onClose={resetCheckout}
-            onError={handleError}
-            clearCart={clearCart}
-            resource={paymentResource}
-          />
-        )}
-      </div>
-    </I18nProvider>
+      <CartDrawer
+        isOpen={isCartOpen}
+        checkoutStarted={checkoutStarted}
+        paymentResource={paymentResource}
+        errorRef={errorRef}
+        onCloseCart={() => setIsCartOpen(false)}
+        onCheckout={handleCheckout}
+        onCheckoutReset={resetCheckout}
+        onError={handleError}
+        onErrorClose={handleErrorClose}
+        clearCart={clearCart}
+      />
+    </AppShell>
   );
 }
 
