@@ -8,8 +8,8 @@ export type CartItem = {
 };
 
 export type CartLine = {
-    product : CartItem;
-    quantity : number;
+    product: CartItem;
+    quantity: number;
 }
 
 type Listener = () => void;
@@ -54,7 +54,7 @@ class CartStore {
 
         return () => {
             this.listeners = this.listeners.filter(l => l !== listener);
-        }
+        };
     }
 
     public notify()

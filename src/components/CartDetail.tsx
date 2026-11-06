@@ -19,16 +19,18 @@ export function CartDetail({ product }: ProductProps) {
   return (
     <tr className="border-b border-gray-200 last:border-none">
       <td className="py-2">{product.name}</td>
-      <td className="py-2">{formatCurrency(product.price)}</td>
-      <td className="py-2">{product.quantity}</td>
-      <td className="py-2">{formatCurrency(product.subtotal)}</td>
-      <td className="py-2">
+      <td className="py-2 text-right">{formatCurrency(product.price)}</td>
+      <td className="py-2 text-right">{product.quantity}</td>
+      <td className="py-2 text-right">{formatCurrency(product.subtotal)}</td>
+      <td className="py-2 text-center">
         <button
           onClick={() => removeItem(product.id)}
-          className="text-red-600 hover:text-red-800"
-          aria-label="Remove item"
-        >
-          🗑️
+          className="text-red-600 
+            hover:text-red-800
+            px-1 py-1 rounded-md 
+            text-right"
+            aria-label="Remove item"
+        >🗑️
         </button>
       </td>
     </tr>
